@@ -14,6 +14,7 @@ type OAuth struct {
 	ConsumerKey    string `json:"consumer-key"`
 	ConsumerSecret string `json:"consumer-secret"`
 	RedirectUri    string `json:"redirect-uri"`
+	LoginDomain    string `json:"login-domain"`
 }
 
 func doWithJsonResponse(request *http.Request, obj interface{}) error {
@@ -51,6 +52,9 @@ func ReadFile(filename string) (*OAuth, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(value.LoginDomain) == 0 {
+		value.LoginDomain = "login.salesforce.com"
+	}
 
 	return value, nil
 }
@@ -62,7 +66,8 @@ func (self *OAuth) Url(state string) string {
 		"redirect_uri":  {self.RedirectUri},
 		"state":         {state},
 	}
-	return fmt.Sprintf("https://login.salesforce.com/services/oauth2/authorize?%s", params.Encode())
+
+	return fmt.Sprintf("https://%s/services/oauth2/authorize?%s", self.LoginDomain, params.Encode())
 }
 
 func (self *OAuth) FetchToken(code string) (*Token, error) {
